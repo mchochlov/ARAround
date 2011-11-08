@@ -29,8 +29,7 @@ public class PlacesSearchService extends IntentService {
 
 	private static final String TAG = "PlacesSearchService";
 
-	double latitude = 37.784147;
-	double longitude = -122.402115;
+
 
 	public PlacesSearchService() {
 		super("PlacesSearchService");
@@ -40,6 +39,8 @@ public class PlacesSearchService extends IntentService {
 	@Override
 	protected void onHandleIntent(Intent intent) {
 		try {
+			double latitude = intent.getDoubleExtra("latitude", 0);
+			double longitude = intent.getDoubleExtra("longtitude", 0);
 			Log.i(TAG, "Perform Search ....");
 			HttpRequestFactory httpRequestFactory = createRequestFactory(transport);
 			HttpRequest request = httpRequestFactory

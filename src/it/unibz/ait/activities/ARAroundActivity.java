@@ -34,7 +34,7 @@ public class ARAroundActivity extends Activity {
 
 		locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
-		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
+		locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
 				MINIMUM_TIME_BETWEEN_UPDATES,
 				MINIMUM_DISTANCE_CHANGE_FOR_UPDATES,
 				new PlacesLocationListener());

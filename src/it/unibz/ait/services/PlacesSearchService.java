@@ -6,6 +6,7 @@ import it.unibz.ait.model.Place;
 import it.unibz.ait.model.PlaceList;
 import android.app.IntentService;
 import android.content.Intent;
+import android.location.Location;
 import android.util.Log;
 
 import com.google.api.client.googleapis.GoogleHeaders;
@@ -29,8 +30,6 @@ public class PlacesSearchService extends IntentService {
 
 	private static final String TAG = "PlacesSearchService";
 
-
-
 	public PlacesSearchService() {
 		super("PlacesSearchService");
 		// TODO Auto-generated constructor stub
@@ -47,7 +46,7 @@ public class PlacesSearchService extends IntentService {
 					.buildGetRequest(new GenericUrl(PLACES_SEARCH_URL));
 			request.url.put("key", API_KEY);
 			request.url.put("location", latitude + "," + longitude);
-			request.url.put("radius", 500);
+			request.url.put("radius", 50);
 			request.url.put("sensor", "false");
 
 			PlaceList places = request.execute().parseAs(PlaceList.class);
@@ -55,6 +54,8 @@ public class PlacesSearchService extends IntentService {
 			for (Place place : places.results) {
 				Log.i(TAG, place.toString());
 			}
+			
+
 
 		} catch (HttpResponseException e) {
 			try {

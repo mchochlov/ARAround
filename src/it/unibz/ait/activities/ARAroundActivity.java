@@ -56,6 +56,8 @@ public class ARAroundActivity extends Activity {
 				intent.putExtra("longtitude", location.getLongitude());
 				intent.putExtra("latitude", location.getLatitude());
 				startService(intent);
+				
+				
 			}
 
 		}

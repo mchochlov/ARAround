@@ -5,16 +5,15 @@ import com.google.api.client.util.Key;
 public class Place {
 
 	@Key
-	public String id;
-
-	@Key
 	public String name;
 
 	@Key
-	public String reference;
+	public Geometry geometry;
 
 	@Override
 	public String toString() {
-		return name + " - " + id;// + " - " + reference;
+		return "Place [name=" + name + ", longitudes=" + geometry.location.lng
+				+ ", latitudes=" + geometry.location.lat + "]";
 	}
+
 }

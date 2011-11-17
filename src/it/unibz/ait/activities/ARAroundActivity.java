@@ -19,11 +19,12 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.OrientationEventListener;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
-import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
+import android.widget.FrameLayout;
 import android.widget.Toast;
 
 public class ARAroundActivity extends Activity {
@@ -44,14 +45,23 @@ public class ARAroundActivity extends Activity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		// setContentView(R.layout.main);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
+		setContentView(R.layout.main);
+
+		// Create an instance of Camera
 		mCamera = getCameraInstance();
+
+		// Create our Preview view and set it as the content of our activity.
 		cameraPreview = new CameraPreview(this, mCamera);
-		PoiView poiView = new PoiView(this);
-		setContentView(cameraPreview);
-		addContentView(poiView, new LayoutParams(LayoutParams.WRAP_CONTENT,
-				LayoutParams.WRAP_CONTENT));
+		FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
+		preview.addView(cameraPreview);
+		/*
+		 * requestWindowFeature(Window.FEATURE_NO_TITLE); mCamera =
+		 * getCameraInstance(); cameraPreview = new CameraPreview(this,
+		 * mCamera); PoiView poiView = new PoiView(this);
+		 * setContentView(cameraPreview); addContentView(poiView, new
+		 * LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+		 */
 
 		locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
@@ -63,12 +73,6 @@ public class ARAroundActivity extends Activity {
 	}
 
 	@Override
-	protected void onDestroy() {
-		super.onDestroy();
-		releaseCamera();
-	}
-
-	@Override
 	protected void onPause() {
 		super.onPause();
 		releaseCamera();
@@ -77,15 +81,9 @@ public class ARAroundActivity extends Activity {
 	@Override
 	protected void onResume() {
 		super.onResume();
-		// requestWindowFeature(Window.FEATURE_NO_TITLE);
 		if (mCamera == null) {
 			cameraPreview.setCamera(getCameraInstance());
 		}
-		// PoiView poiView = new PoiView(this);
-		// setContentView(cameraPreview);
-		// addContentView(poiView, new LayoutParams(LayoutParams.WRAP_CONTENT,
-		// LayoutParams.WRAP_CONTENT));
-
 	}
 
 	public static Camera getCameraInstance() {
@@ -179,10 +177,9 @@ public class ARAroundActivity extends Activity {
 
 		public CameraPreview(Context context, Camera camera) {
 			super(context);
-			mCamera = camera;
-
 			// Install a SurfaceHolder.Callback so we get notified when the
 			// underlying surface is created and destroyed.
+			this.mCamera = camera;
 			mHolder = getHolder();
 			mHolder.addCallback(this);
 			// deprecated setting, but required on Android versions prior to 3.0
@@ -206,8 +203,6 @@ public class ARAroundActivity extends Activity {
 		}
 
 		public void surfaceDestroyed(SurfaceHolder holder) {
-			// empty. Take care of releasing the Camera preview in your
-			// activity.
 		}
 
 		public void surfaceChanged(SurfaceHolder holder, int format, int w,

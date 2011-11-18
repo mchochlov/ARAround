@@ -19,13 +19,12 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.OrientationEventListener;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
 import android.widget.FrameLayout;
-import android.widget.Toast;
 
 public class ARAroundActivity extends Activity {
 
@@ -40,6 +39,7 @@ public class ARAroundActivity extends Activity {
 	protected LocationManager locationManager;
 	private Camera mCamera;
 	private CameraPreview cameraPreview;
+	private PlacesLocationListener plListener;
 
 	/** Called when the activity is first created. */
 	@Override
@@ -55,20 +55,17 @@ public class ARAroundActivity extends Activity {
 		cameraPreview = new CameraPreview(this, mCamera);
 		FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
 		preview.addView(cameraPreview);
-		/*
-		 * requestWindowFeature(Window.FEATURE_NO_TITLE); mCamera =
-		 * getCameraInstance(); cameraPreview = new CameraPreview(this,
-		 * mCamera); PoiView poiView = new PoiView(this);
-		 * setContentView(cameraPreview); addContentView(poiView, new
-		 * LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
-		 */
 
+		PoiView poiView = new PoiView(this);
+		preview.addView(poiView, new LayoutParams(LayoutParams.WRAP_CONTENT,
+				LayoutParams.WRAP_CONTENT));
+
+		plListener = new PlacesLocationListener();
 		locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
 		locationManager.requestLocationUpdates(
 				LocationManager.NETWORK_PROVIDER, MINIMUM_TIME_BETWEEN_UPDATES,
-				MINIMUM_DISTANCE_CHANGE_FOR_UPDATES,
-				new PlacesLocationListener());
+				MINIMUM_DISTANCE_CHANGE_FOR_UPDATES, plListener);
 
 	}
 
@@ -76,6 +73,7 @@ public class ARAroundActivity extends Activity {
 	protected void onPause() {
 		super.onPause();
 		releaseCamera();
+		locationManager.removeUpdates(plListener);
 	}
 
 	@Override
@@ -84,6 +82,7 @@ public class ARAroundActivity extends Activity {
 		if (mCamera == null) {
 			cameraPreview.setCamera(getCameraInstance());
 		}
+
 	}
 
 	public static Camera getCameraInstance() {
@@ -123,23 +122,15 @@ public class ARAroundActivity extends Activity {
 		}
 
 		public void onProviderDisabled(String s) {
-			Toast.makeText(ARAroundActivity.this,
-					"Provider disabled by the user. GPS turned off",
-					Toast.LENGTH_LONG).show();
-
+			Log.i(TAG1, "Provider disabled by the user. GPS turned off");
 		}
 
 		public void onProviderEnabled(String s) {
-			Toast.makeText(ARAroundActivity.this,
-					"Provider enabled by the user. GPS turned on",
-					Toast.LENGTH_LONG).show();
-
+			Log.i(TAG1, "Provider enabled by the user. GPS turned on");
 		}
 
 		public void onStatusChanged(String s, int i, Bundle b) {
-			Toast.makeText(ARAroundActivity.this, "Provider status changed",
-					Toast.LENGTH_LONG).show();
-
+			Log.i(TAG1, "Provider status changed");
 		}
 
 		public NetworkInfo isOnline() {
@@ -153,7 +144,6 @@ public class ARAroundActivity extends Activity {
 
 		public PoiView(Context context) {
 			super(context);
-			// TODO Auto-generated constructor stub
 		}
 
 		@Override

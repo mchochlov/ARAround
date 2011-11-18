@@ -1,6 +1,8 @@
 package it.unibz.ait.activities;
 
 import it.unibz.ait.R;
+import it.unibz.ait.orientation.OrientationListener;
+import it.unibz.ait.orientation.OrientationManager;
 import it.unibz.ait.services.PlacesSearchService;
 import android.app.Activity;
 import android.content.Context;
@@ -12,17 +14,19 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.TextView;
 import android.widget.Toast;
 
-public class ARAroundActivity extends Activity {
+public class ARAroundActivity extends Activity implements OrientationListener {
 
+	private static Context CONTEXT;
 	private static final String TAG1 = "PlacesLocationListener";
 	private static final String TAG2 = "ARAroundActivity";
 
 	private static final long MINIMUM_DISTANCE_CHANGE_FOR_UPDATES = 0; // in
 																		// Meters
 	private static final long MINIMUM_TIME_BETWEEN_UPDATES = 30000; // in
-																// Milliseconds
+	// Milliseconds
 
 	protected LocationManager locationManager;
 
@@ -32,10 +36,11 @@ public class ARAroundActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
 
+		CONTEXT = this;
 		locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
-		locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
-				MINIMUM_TIME_BETWEEN_UPDATES,
+		locationManager.requestLocationUpdates(
+				LocationManager.NETWORK_PROVIDER, MINIMUM_TIME_BETWEEN_UPDATES,
 				MINIMUM_DISTANCE_CHANGE_FOR_UPDATES,
 				new PlacesLocationListener());
 
@@ -56,8 +61,7 @@ public class ARAroundActivity extends Activity {
 				intent.putExtra("longtitude", location.getLongitude());
 				intent.putExtra("latitude", location.getLatitude());
 				startService(intent);
-				
-				
+
 			}
 
 		}
@@ -87,6 +91,53 @@ public class ARAroundActivity extends Activity {
 			return cm.getActiveNetworkInfo();
 		}
 
+	}
+
+	protected void onResume() {
+		super.onResume();
+		if (OrientationManager.isSupported()) {
+			OrientationManager.startListening(this);
+		}
+	}
+
+	protected void onDestroy() {
+		super.onDestroy();
+		if (OrientationManager.isListening()) {
+			OrientationManager.stopListening();
+		}
+
+	}
+
+	public static Context getContext() {
+		return CONTEXT;
+	}
+
+	
+	public void onOrientationChanged(float azimuth, float pitch, float roll) {
+		((TextView) findViewById(R.id.azimuth))
+				.setText(String.valueOf(azimuth));
+		((TextView) findViewById(R.id.pitch)).setText(String.valueOf(pitch));
+		((TextView) findViewById(R.id.roll)).setText(String.valueOf(roll));
+	}
+
+	
+	public void onBottomUp() {
+		Toast.makeText(this, "Bottom UP", 1000).show();
+	}
+
+	
+	public void onLeftUp() {
+		Toast.makeText(this, "Left UP", 1000).show();
+	}
+
+	
+	public void onRightUp() {
+		Toast.makeText(this, "Right UP", 1000).show();
+	}
+
+	
+	public void onTopUp() {
+		Toast.makeText(this, "Top UP", 1000).show();
 	}
 
 }

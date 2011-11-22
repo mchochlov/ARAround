@@ -1,12 +1,17 @@
 package it.unibz.ait.services;
 
-import java.io.IOException;
-
 import it.unibz.ait.model.Place;
+import it.unibz.ait.model.PlaceData;
 import it.unibz.ait.model.PlaceList;
+
+import java.io.IOException;
+import java.util.ArrayList;
+
 import android.app.IntentService;
 import android.content.Intent;
-import android.location.Location;
+import android.os.Bundle;
+import android.os.Parcelable;
+import android.os.ResultReceiver;
 import android.util.Log;
 
 import com.google.api.client.googleapis.GoogleHeaders;
@@ -32,7 +37,6 @@ public class PlacesSearchService extends IntentService {
 
 	public PlacesSearchService() {
 		super("PlacesSearchService");
-		// TODO Auto-generated constructor stub
 	}
 
 	@Override
@@ -40,6 +44,8 @@ public class PlacesSearchService extends IntentService {
 		try {
 			double latitude = intent.getDoubleExtra("latitude", 0);
 			double longitude = intent.getDoubleExtra("longtitude", 0);
+			final ResultReceiver receiver = intent
+					.getParcelableExtra("receiver");
 			Log.i(TAG, "Perform Search ....");
 			HttpRequestFactory httpRequestFactory = createRequestFactory(transport);
 			HttpRequest request = httpRequestFactory
@@ -51,21 +57,24 @@ public class PlacesSearchService extends IntentService {
 
 			PlaceList places = request.execute().parseAs(PlaceList.class);
 			Log.i(TAG, "STATUS = " + places.status);
+			ArrayList<Parcelable> placesData = new ArrayList<Parcelable>();
 			for (Place place : places.results) {
 				Log.i(TAG, place.toString());
+				placesData.add(new PlaceData(place.name,
+						place.geometry.location.lng,
+						place.geometry.location.lat));
 			}
-			
-
+			Bundle b = new Bundle();
+			b.putParcelableArrayList("results", placesData);
+			receiver.send(0, b);
 
 		} catch (HttpResponseException e) {
 			try {
 				Log.e(TAG, e.getResponse().parseAsString(), e);
 			} catch (IOException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

@@ -15,6 +15,10 @@ public class ServiceResultReceiver extends ResultReceiver {
     public void setReceiver(Receiver receiver) {
         mReceiver = receiver;
     }
+    
+    public Receiver getReceiver() {
+        return this.mReceiver;
+    }
 
     public interface Receiver {
         public void onReceiveResult(int resultCode, Bundle resultData);

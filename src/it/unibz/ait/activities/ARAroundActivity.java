@@ -1,9 +1,12 @@
 package it.unibz.ait.activities;
 
 import it.unibz.ait.R;
+import it.unibz.ait.model.PlaceData;
 import it.unibz.ait.services.PlacesSearchService;
+import it.unibz.ait.services.ServiceResultReceiver;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 import android.app.Activity;
 import android.content.Context;
@@ -18,6 +21,7 @@ import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -26,7 +30,7 @@ import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
 import android.widget.FrameLayout;
 
-public class ARAroundActivity extends Activity {
+public class ARAroundActivity extends Activity implements ServiceResultReceiver.Receiver {
 
 	private static final String TAG1 = "PlacesLocationListener";
 	private static final String TAG2 = "ARAroundActivity";
@@ -40,6 +44,9 @@ public class ARAroundActivity extends Activity {
 	private Camera mCamera;
 	private CameraPreview cameraPreview;
 	private PlacesLocationListener plListener;
+	public ServiceResultReceiver mReceiver;
+	public PoiView poiView;
+	public ArrayList<PlaceData> places = new ArrayList<PlaceData>();
 
 	/** Called when the activity is first created. */
 	@Override
@@ -56,7 +63,7 @@ public class ARAroundActivity extends Activity {
 		FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
 		preview.addView(cameraPreview);
 
-		PoiView poiView = new PoiView(this);
+		poiView = new PoiView(this);
 		preview.addView(poiView, new LayoutParams(LayoutParams.WRAP_CONTENT,
 				LayoutParams.WRAP_CONTENT));
 
@@ -66,7 +73,9 @@ public class ARAroundActivity extends Activity {
 		locationManager.requestLocationUpdates(
 				LocationManager.NETWORK_PROVIDER, MINIMUM_TIME_BETWEEN_UPDATES,
 				MINIMUM_DISTANCE_CHANGE_FOR_UPDATES, plListener);
-
+		
+		mReceiver = new ServiceResultReceiver(new Handler());
+        mReceiver.setReceiver(this);
 	}
 
 	@Override
@@ -74,6 +83,7 @@ public class ARAroundActivity extends Activity {
 		super.onPause();
 		releaseCamera();
 		locationManager.removeUpdates(plListener);
+		mReceiver.setReceiver(null);
 	}
 
 	@Override
@@ -82,7 +92,9 @@ public class ARAroundActivity extends Activity {
 		if (mCamera == null) {
 			cameraPreview.setCamera(getCameraInstance());
 		}
-
+		if (mReceiver.getReceiver() == null) {
+			mReceiver.setReceiver(this);
+		}
 	}
 
 	public static Camera getCameraInstance() {
@@ -116,11 +128,9 @@ public class ARAroundActivity extends Activity {
 						PlacesSearchService.class);
 				intent.putExtra("longtitude", location.getLongitude());
 				intent.putExtra("latitude", location.getLatitude());
-				startService(intent);
-				
-				
+				intent.putExtra("receiver", mReceiver);
+				startService(intent);	
 			}
-
 		}
 
 		public void onProviderDisabled(String s) {
@@ -150,11 +160,15 @@ public class ARAroundActivity extends Activity {
 
 		@Override
 		protected void onDraw(Canvas canvas) {
-			// TODO Auto-generated method stub
-			Paint paint = new Paint();
-			paint.setStyle(Paint.Style.FILL);
-			paint.setColor(Color.BLACK);
-			canvas.drawText("Test Text", 10, 10, paint);
+			int pos = 30;
+			for (PlaceData place : places) {
+				Paint paint = new Paint();
+				paint.setStyle(Paint.Style.FILL);
+				paint.setColor(Color.BLACK);
+				paint.setTextSize(20);
+				canvas.drawText(place.getName(), 10, pos, paint);
+				pos = pos + 30;
+			}
 			super.onDraw(canvas);
 		}
 	}
@@ -227,6 +241,11 @@ public class ARAroundActivity extends Activity {
 						"Error starting camera preview: " + e.getMessage());
 			}
 		}
+	}
+
+	public void onReceiveResult(int resultCode, Bundle resultData) {
+		places = resultData.getParcelableArrayList("results");
+		poiView.invalidate();
 	}
 
 }

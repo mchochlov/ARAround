@@ -46,6 +46,14 @@
 				<artifactId>android-maven-plugin</artifactId>
 				<version>3.0.0-alpha-13</version>
 				<configuration>
+
+					<dex>
+						<jvmArguments>
+							<jvmArgument>-Xms256m</jvmArgument>
+							<jvmArgument>-Xmx512m</jvmArgument>
+						</jvmArguments>
+					</dex>
+
 					<sdk>
 						<path>${env.ANDROID_HOME}</path>
 						<platform>8</platform>

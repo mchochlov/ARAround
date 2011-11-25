@@ -60,9 +60,11 @@ public class PlacesSearchService extends IntentService {
 			ArrayList<Parcelable> placesData = new ArrayList<Parcelable>();
 			for (Place place : places.results) {
 				Log.i(TAG, place.toString());
-				placesData.add(new PlaceData(place.name,
-						place.geometry.location.lng,
-						place.geometry.location.lat));
+				if (!place.isExcludedType()) {
+					placesData.add(new PlaceData(place.name,
+							place.geometry.location.lng,
+							place.geometry.location.lat));
+				}
 			}
 			Bundle b = new Bundle();
 			b.putParcelableArrayList("results", placesData);

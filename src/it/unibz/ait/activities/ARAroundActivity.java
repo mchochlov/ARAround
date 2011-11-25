@@ -44,6 +44,7 @@ public class ARAroundActivity extends Activity implements OrientationListener, S
 	private static Context CONTEXT;
 	private static final String TAG1 = "PlacesLocationListener";
 	private static final String TAG2 = "ARAroundActivity";
+	private static final String TAGA = "Azimuth";
 
 	private static final long MINIMUM_DISTANCE_CHANGE_FOR_UPDATES = 0; // in
 																		// Meters
@@ -66,7 +67,7 @@ public class ARAroundActivity extends Activity implements OrientationListener, S
 		setContentView(R.layout.main);
 
 
-		//CONTEXT = this;
+		CONTEXT = this;// -> will write meaning of azimuth
 
 		// Create an instance of Camera
 		mCamera = getCameraInstance();
@@ -173,15 +174,15 @@ public class ARAroundActivity extends Activity implements OrientationListener, S
 		}
 
 		public void onProviderDisabled(String s) {
-			Log.i(TAG1, "Provider disabled by the user. GPS turned off");
+		//	Log.i(TAG1, "Provider disabled by the user. GPS turned off");
 		}
 
 		public void onProviderEnabled(String s) {
-			Log.i(TAG1, "Provider enabled by the user. GPS turned on");
+	//		Log.i(TAG1, "Provider enabled by the user. GPS turned on");
 		}
 
 		public void onStatusChanged(String s, int i, Bundle b) {
-			Log.i(TAG1, "Provider status changed");
+		//	Log.i(TAG1, "Provider status changed");
 		}
 
 		public NetworkInfo isOnline() {
@@ -205,30 +206,32 @@ public class ARAroundActivity extends Activity implements OrientationListener, S
 
 	
 	public void onOrientationChanged(float azimuth, float pitch, float roll) {
-		/*((TextView) findViewById(R.id.azimuth))
-				.setText(String.valueOf(azimuth));
-		((TextView) findViewById(R.id.pitch)).setText(String.valueOf(pitch));
+		Log.i(TAGA, String.valueOf(azimuth));
+	
+
+			
+	/*	((TextView) findViewById(R.id.pitch)).setText(String.valueOf(pitch));
 		((TextView) findViewById(R.id.roll)).setText(String.valueOf(roll));*/
 	}
 
 	
 	public void onBottomUp() {
-		Toast.makeText(this, "Bottom UP", 1000).show();
+	//	Toast.makeText(this, "Bottom UP", 1000).show();
 	}
 
 	
 	public void onLeftUp() {
-		Toast.makeText(this, "Left UP", 1000).show();
+	//	Toast.makeText(this, "Left UP", 1000).show();
 	}
 
 	
 	public void onRightUp() {
-		Toast.makeText(this, "Right UP", 1000).show();
+		//Toast.makeText(this, "Right UP", 1000).show();
 	}
 
 	
 	public void onTopUp() {
-		Toast.makeText(this, "Top UP", 1000).show();
+		//Toast.makeText(this, "Top UP", 1000).show();
 
 	}
 	
@@ -251,6 +254,7 @@ public class ARAroundActivity extends Activity implements OrientationListener, S
 				canvas.drawText(place.getName(), 10, pos, paint);
 				pos = pos + 30;
 			}
+			
 			super.onDraw(canvas);
 		}
 	}

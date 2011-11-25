@@ -16,6 +16,7 @@ import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Typeface;
 import android.hardware.Camera;
 import android.location.Location;
 import android.location.LocationListener;
@@ -218,9 +219,11 @@ public class ARAroundActivity extends Activity implements OrientationListener, S
 			int pos = 30;
 			for (PlaceData place : places) {
 				Paint paint = new Paint();
-				paint.setStyle(Paint.Style.FILL);
-				paint.setColor(Color.BLACK);
-				paint.setTextSize(20);
+				paint.setStyle(Paint.Style.FILL_AND_STROKE);
+				paint.setColor(Color.WHITE);
+				paint.setShadowLayer(3, 0, 0, Color.BLACK);
+				paint.setTypeface(Typeface.DEFAULT_BOLD);
+				paint.setTextSize(16);
 				canvas.drawText(place.getName(), 10, pos, paint);
 				pos = pos + 30;
 			}
@@ -303,4 +306,8 @@ public class ARAroundActivity extends Activity implements OrientationListener, S
 		poiView.invalidate();
 	}
 
+	
+
+
+	
 }

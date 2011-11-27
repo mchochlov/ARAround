@@ -3,7 +3,6 @@ package it.unibz.ait.orientation;
 public interface OrientationListener {
 
 	public void onOrientationChanged(float azimuth, float pitch, float roll);
-	
 	/**
 	 * Top side of the phone is up
 	 * The phone is standing on its bottom side
@@ -27,5 +26,6 @@ public interface OrientationListener {
 	 * The phone is standing on its right side
 	 */
 	public void onLeftUp();
+	
 	
 }

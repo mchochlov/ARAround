@@ -39,13 +39,16 @@ import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
 import android.widget.FrameLayout;
 
-public class ARAroundActivity extends Activity implements OrientationListener, ServiceResultReceiver.Receiver {
+public class ARAroundActivity extends Activity implements OrientationListener,
+		ServiceResultReceiver.Receiver {
 
 	private static Context CONTEXT;
 	private static final String TAG1 = "PlacesLocationListener";
 	private static final String TAG2 = "ARAroundActivity";
 	private static final String TAGA = "Azimuth";
-
+	private static final String TAGB = "Loc arround azimuth";
+	public Location currentLocation;
+	
 	private static final long MINIMUM_DISTANCE_CHANGE_FOR_UPDATES = 0; // in
 																		// Meters
 	private static final long MINIMUM_TIME_BETWEEN_UPDATES = 30000; // in
@@ -59,6 +62,8 @@ public class ARAroundActivity extends Activity implements OrientationListener, S
 	public PoiView poiView;
 	public ArrayList<PlaceData> places = new ArrayList<PlaceData>();
 
+	public float cameraAngle;
+
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -66,11 +71,12 @@ public class ARAroundActivity extends Activity implements OrientationListener, S
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.main);
 
-
 		CONTEXT = this;// -> will write meaning of azimuth
 
 		// Create an instance of Camera
 		mCamera = getCameraInstance();
+
+		cameraAngle = mCamera.getParameters().getHorizontalViewAngle();
 
 		// Create our Preview view and set it as the content of our activity.
 		cameraPreview = new CameraPreview(this, mCamera);
@@ -86,14 +92,13 @@ public class ARAroundActivity extends Activity implements OrientationListener, S
 
 		locationManager.requestLocationUpdates(
 				LocationManager.NETWORK_PROVIDER, MINIMUM_TIME_BETWEEN_UPDATES,
-				//MINIMUM_DISTANCE_CHANGE_FOR_UPDATES,
-				//new PlacesLocationListener());
+				// MINIMUM_DISTANCE_CHANGE_FOR_UPDATES,
+				// new PlacesLocationListener());
 				MINIMUM_DISTANCE_CHANGE_FOR_UPDATES, plListener);
 		mReceiver = new ServiceResultReceiver(new Handler());
-        mReceiver.setReceiver(this);
+		mReceiver.setReceiver(this);
 	}
 
-	
 	@Override
 	public void onBackPressed() {
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -114,13 +119,17 @@ public class ARAroundActivity extends Activity implements OrientationListener, S
 		alert.show();
 	}
 
-	
 	@Override
 	protected void onPause() {
 		super.onPause();
 		releaseCamera();
 		locationManager.removeUpdates(plListener);
+		
 		mReceiver.setReceiver(null);
+		if (OrientationManager.isListening()) {
+			OrientationManager.stopListening();
+		}
+
 	}
 
 	@Override
@@ -169,20 +178,21 @@ public class ARAroundActivity extends Activity implements OrientationListener, S
 				intent.putExtra("longtitude", location.getLongitude());
 				intent.putExtra("latitude", location.getLatitude());
 				intent.putExtra("receiver", mReceiver);
-				startService(intent);	
+				startService(intent);
+				currentLocation = location;
 			}
 		}
 
 		public void onProviderDisabled(String s) {
-		//	Log.i(TAG1, "Provider disabled by the user. GPS turned off");
+			// Log.i(TAG1, "Provider disabled by the user. GPS turned off");
 		}
 
 		public void onProviderEnabled(String s) {
-	//		Log.i(TAG1, "Provider enabled by the user. GPS turned on");
+			// Log.i(TAG1, "Provider enabled by the user. GPS turned on");
 		}
 
 		public void onStatusChanged(String s, int i, Bundle b) {
-		//	Log.i(TAG1, "Provider status changed");
+			// Log.i(TAG1, "Provider status changed");
 		}
 
 		public NetworkInfo isOnline() {
@@ -204,37 +214,83 @@ public class ARAroundActivity extends Activity implements OrientationListener, S
 		return CONTEXT;
 	}
 
-	
 	public void onOrientationChanged(float azimuth, float pitch, float roll) {
-		Log.i(TAGA, String.valueOf(azimuth));
-	
 
-			
-	/*	((TextView) findViewById(R.id.pitch)).setText(String.valueOf(pitch));
-		((TextView) findViewById(R.id.roll)).setText(String.valueOf(roll));*/
+		
+		for (PlaceData place : places) {
+			//azimuth = 167;
+			boolean visiblePlace = false;
+			double lat1 = currentLocation.getLatitude();
+			double lng1 = currentLocation.getLongitude();
+			double halfCameraAngle = cameraAngle * 0.5;
+			double phoneRightSide = azimuth + halfCameraAngle;
+			if (phoneRightSide > 360)
+				phoneRightSide = phoneRightSide - 360;
+
+			double phoneLeftSide = azimuth - halfCameraAngle;
+			if (phoneLeftSide < 0)
+				phoneLeftSide = phoneLeftSide + 360;
+
+			double lat2 = place.getLat();
+			double lng2 = place.getLng();
+			double longitudinalDifference = lng2 - lng1;
+			double latitudinalDifference = lat2 - lat1;
+
+			double locAzimuth = Math.toDegrees((Math.PI * .5d)
+					- Math.atan(latitudinalDifference / longitudinalDifference));
+			if (longitudinalDifference > 0)
+				locAzimuth = locAzimuth;
+			else if (longitudinalDifference < 0)
+				locAzimuth = locAzimuth + Math.PI;
+			else if (latitudinalDifference < 0)
+				locAzimuth = Math.PI;
+			else
+				locAzimuth = 0;
+
+			if (phoneRightSide > phoneLeftSide) {
+				if ((locAzimuth > phoneLeftSide)
+						&& (locAzimuth < phoneRightSide))
+					visiblePlace = true;
+			}
+			else if (phoneRightSide < phoneLeftSide) {
+				if ((locAzimuth < (phoneRightSide+360.0))
+						&& (locAzimuth > phoneLeftSide))
+					visiblePlace = true;
+			}
+			else
+				visiblePlace = false;
+
+			Log.i(TAGA, String.valueOf(azimuth) + " " +halfCameraAngle);
+			Log.i(TAGB, place.getName() + " " + locAzimuth + visiblePlace);
+
+		}
+
+		/*
+		 * ((TextView) findViewById(R.id.pitch)).setText(String.valueOf(pitch));
+		 * ((TextView) findViewById(R.id.roll)).setText(String.valueOf(roll));
+		 */
 	}
 
-	
+	// @Override
 	public void onBottomUp() {
-	//	Toast.makeText(this, "Bottom UP", 1000).show();
+		// Toast.makeText(this, "Bottom UP", 1000).show();
 	}
 
-	
+	// @Override
 	public void onLeftUp() {
-	//	Toast.makeText(this, "Left UP", 1000).show();
+		// Toast.makeText(this, "Left UP", 1000).show();
 	}
 
-	
+	// @Override
 	public void onRightUp() {
-		//Toast.makeText(this, "Right UP", 1000).show();
+		// Toast.makeText(this, "Right UP", 1000).show();
 	}
 
-	
+	// @Override
 	public void onTopUp() {
-		//Toast.makeText(this, "Top UP", 1000).show();
-
+		// Toast.makeText(this, "Top UP", 1000).show();
 	}
-	
+
 	public class PoiView extends View {
 
 		public PoiView(Context context) {
@@ -254,7 +310,7 @@ public class ARAroundActivity extends Activity implements OrientationListener, S
 				canvas.drawText(place.getName(), 10, pos, paint);
 				pos = pos + 30;
 			}
-			
+
 			super.onDraw(canvas);
 		}
 	}
@@ -334,8 +390,4 @@ public class ARAroundActivity extends Activity implements OrientationListener, S
 		poiView.invalidate();
 	}
 
-	
-
-
-	
 }

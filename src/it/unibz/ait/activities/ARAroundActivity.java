@@ -48,10 +48,10 @@ public class ARAroundActivity extends Activity implements OrientationListener,
 	private static final String TAGA = "Azimuth";
 	private static final String TAGB = "Loc arround azimuth";
 	public Location currentLocation;
-	
+
 	private static final long MINIMUM_DISTANCE_CHANGE_FOR_UPDATES = 0; // in
 																		// Meters
-	private static final long MINIMUM_TIME_BETWEEN_UPDATES = 30000; // in
+	private static final long MINIMUM_TIME_BETWEEN_UPDATES = 0; // in
 	// Milliseconds
 
 	protected LocationManager locationManager;
@@ -62,7 +62,8 @@ public class ARAroundActivity extends Activity implements OrientationListener,
 	public PoiView poiView;
 	public ArrayList<PlaceData> places = new ArrayList<PlaceData>();
 
-	public float cameraAngle;
+	public float cameraHorizontalAngle;
+	public float cameraVerticalAngle;
 
 	/** Called when the activity is first created. */
 	@Override
@@ -76,7 +77,10 @@ public class ARAroundActivity extends Activity implements OrientationListener,
 		// Create an instance of Camera
 		mCamera = getCameraInstance();
 
-		cameraAngle = mCamera.getParameters().getHorizontalViewAngle();
+		cameraHorizontalAngle = mCamera.getParameters()
+				.getHorizontalViewAngle();
+
+		cameraVerticalAngle = mCamera.getParameters().getVerticalViewAngle();
 
 		// Create our Preview view and set it as the content of our activity.
 		cameraPreview = new CameraPreview(this, mCamera);
@@ -124,7 +128,7 @@ public class ARAroundActivity extends Activity implements OrientationListener,
 		super.onPause();
 		releaseCamera();
 		locationManager.removeUpdates(plListener);
-		
+
 		mReceiver.setReceiver(null);
 		if (OrientationManager.isListening()) {
 			OrientationManager.stopListening();
@@ -192,7 +196,7 @@ public class ARAroundActivity extends Activity implements OrientationListener,
 		}
 
 		public void onStatusChanged(String s, int i, Bundle b) {
-			// Log.i(TAG1, "Provider status changed");
+			Log.i(TAG1, "Provider status changed");
 		}
 
 		public NetworkInfo isOnline() {
@@ -216,13 +220,12 @@ public class ARAroundActivity extends Activity implements OrientationListener,
 
 	public void onOrientationChanged(float azimuth, float pitch, float roll) {
 
-		
 		for (PlaceData place : places) {
-			//azimuth = 167;
-			//boolean visiblePlace = false;
+			// azimuth = 41;
+			// boolean visiblePlace = false;
 			double lat1 = currentLocation.getLatitude();
 			double lng1 = currentLocation.getLongitude();
-			double halfCameraAngle = cameraAngle * 0.5;
+			double halfCameraAngle = cameraHorizontalAngle * 0.5;
 			double phoneRightSide = azimuth + halfCameraAngle;
 			if (phoneRightSide > 360)
 				phoneRightSide = phoneRightSide - 360;
@@ -236,8 +239,10 @@ public class ARAroundActivity extends Activity implements OrientationListener,
 			double longitudinalDifference = lng2 - lng1;
 			double latitudinalDifference = lat2 - lat1;
 
-			double locAzimuth = Math.toDegrees((Math.PI * .5d)
-					- Math.atan(latitudinalDifference / longitudinalDifference));
+			double locAzimuth = Math
+					.toDegrees((Math.PI * .5d)
+							- Math.atan(latitudinalDifference
+									/ longitudinalDifference));
 			if (longitudinalDifference > 0)
 				locAzimuth = locAzimuth;
 			else if (longitudinalDifference < 0)
@@ -247,24 +252,31 @@ public class ARAroundActivity extends Activity implements OrientationListener,
 			else
 				locAzimuth = 0;
 
-			if (phoneRightSide > phoneLeftSide) {
+			// double locAzimuth = 167;
+			if (phoneRightSide >= phoneLeftSide) {
 				if ((locAzimuth > phoneLeftSide)
-						&& (locAzimuth < phoneRightSide))
+						&& (locAzimuth < phoneRightSide)) {
 					place.setVisible(true);
-			}
-			else if (phoneRightSide < phoneLeftSide) {
-				if ((locAzimuth < (phoneRightSide+360.0))
-						&& (locAzimuth > phoneLeftSide))
-					place.setVisible(true);
-			}
-			else
-				place.setVisible(false);
 
-			Log.i(TAGA, String.valueOf(azimuth) + " " +halfCameraAngle);
+				} else {
+					place.setVisible(false);
+				}
+
+			}
+			if (phoneRightSide <= phoneLeftSide) {
+				if ((locAzimuth < (phoneRightSide + 360.0))
+						&& (locAzimuth > phoneLeftSide)) {
+					place.setVisible(true);
+				} else {
+					place.setVisible(false);
+				}
+			}
+
+			Log.i(TAGA, String.valueOf(azimuth) + " " + cameraVerticalAngle);
 			Log.i(TAGB, place.getName() + " " + locAzimuth + place.isVisible());
 
 		}
-		poiView.invalidate();
+		poiView.postInvalidate();
 		/*
 		 * ((TextView) findViewById(R.id.pitch)).setText(String.valueOf(pitch));
 		 * ((TextView) findViewById(R.id.roll)).setText(String.valueOf(roll));
@@ -301,14 +313,16 @@ public class ARAroundActivity extends Activity implements OrientationListener,
 		protected void onDraw(Canvas canvas) {
 			int pos = 30;
 			for (PlaceData place : places) {
-				if (place.isVisible()){
+				if (place.isVisible()) {
 					Paint paint = new Paint();
 					paint.setStyle(Paint.Style.FILL_AND_STROKE);
 					paint.setColor(Color.WHITE);
 					paint.setShadowLayer(3, 0, 0, Color.BLACK);
 					paint.setTypeface(Typeface.DEFAULT_BOLD);
-					paint.setTextSize(16);
+					paint.setTextSize(12);
+
 					canvas.drawText(place.getName(), 10, pos, paint);
+
 					pos = pos + 30;
 				}
 			}
@@ -389,7 +403,7 @@ public class ARAroundActivity extends Activity implements OrientationListener,
 
 	public void onReceiveResult(int resultCode, Bundle resultData) {
 		places = resultData.getParcelableArrayList("results");
-		poiView.invalidate();
+		poiView.postInvalidate();
 	}
 
 }

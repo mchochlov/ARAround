@@ -52,7 +52,7 @@ public class PlacesSearchService extends IntentService {
 					.buildGetRequest(new GenericUrl(PLACES_SEARCH_URL));
 			request.url.put("key", API_KEY);
 			request.url.put("location", latitude + "," + longitude);
-			request.url.put("radius", 100);
+			request.url.put("radius", 50);
 			request.url.put("sensor", "false");
 
 			PlaceList places = request.execute().parseAs(PlaceList.class);

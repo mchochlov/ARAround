@@ -219,7 +219,7 @@ public class ARAroundActivity extends Activity implements OrientationListener,
 		
 		for (PlaceData place : places) {
 			//azimuth = 167;
-			boolean visiblePlace = false;
+			//boolean visiblePlace = false;
 			double lat1 = currentLocation.getLatitude();
 			double lng1 = currentLocation.getLongitude();
 			double halfCameraAngle = cameraAngle * 0.5;
@@ -250,21 +250,21 @@ public class ARAroundActivity extends Activity implements OrientationListener,
 			if (phoneRightSide > phoneLeftSide) {
 				if ((locAzimuth > phoneLeftSide)
 						&& (locAzimuth < phoneRightSide))
-					visiblePlace = true;
+					place.setVisible(true);
 			}
 			else if (phoneRightSide < phoneLeftSide) {
 				if ((locAzimuth < (phoneRightSide+360.0))
 						&& (locAzimuth > phoneLeftSide))
-					visiblePlace = true;
+					place.setVisible(true);
 			}
 			else
-				visiblePlace = false;
+				place.setVisible(false);
 
 			Log.i(TAGA, String.valueOf(azimuth) + " " +halfCameraAngle);
-			Log.i(TAGB, place.getName() + " " + locAzimuth + visiblePlace);
+			Log.i(TAGB, place.getName() + " " + locAzimuth + place.isVisible());
 
 		}
-
+		poiView.invalidate();
 		/*
 		 * ((TextView) findViewById(R.id.pitch)).setText(String.valueOf(pitch));
 		 * ((TextView) findViewById(R.id.roll)).setText(String.valueOf(roll));
@@ -301,14 +301,16 @@ public class ARAroundActivity extends Activity implements OrientationListener,
 		protected void onDraw(Canvas canvas) {
 			int pos = 30;
 			for (PlaceData place : places) {
-				Paint paint = new Paint();
-				paint.setStyle(Paint.Style.FILL_AND_STROKE);
-				paint.setColor(Color.WHITE);
-				paint.setShadowLayer(3, 0, 0, Color.BLACK);
-				paint.setTypeface(Typeface.DEFAULT_BOLD);
-				paint.setTextSize(12);
-				canvas.drawText(place.getName(), 10, pos, paint);
-				pos = pos + 30;
+				if (place.isVisible()){
+					Paint paint = new Paint();
+					paint.setStyle(Paint.Style.FILL_AND_STROKE);
+					paint.setColor(Color.WHITE);
+					paint.setShadowLayer(3, 0, 0, Color.BLACK);
+					paint.setTypeface(Typeface.DEFAULT_BOLD);
+					paint.setTextSize(16);
+					canvas.drawText(place.getName(), 10, pos, paint);
+					pos = pos + 30;
+				}
 			}
 
 			super.onDraw(canvas);

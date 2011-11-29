@@ -6,6 +6,7 @@ import it.unibz.ait.model.PlaceList;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import android.app.IntentService;
 import android.content.Intent;
@@ -52,20 +53,26 @@ public class PlacesSearchService extends IntentService {
 					.buildGetRequest(new GenericUrl(PLACES_SEARCH_URL));
 			request.url.put("key", API_KEY);
 			request.url.put("location", latitude + "," + longitude);
-			request.url.put("radius", 100);
+			request.url.put("radius", 50);
 			request.url.put("sensor", "false");
 
 			PlaceList places = request.execute().parseAs(PlaceList.class);
 			Log.i(TAG, "STATUS = " + places.status);
 			ArrayList<Parcelable> placesData = new ArrayList<Parcelable>();
-			for (Place place : places.results) {
-				Log.i(TAG, place.toString());
-				if (!place.isExcludedType()) {
-					placesData.add(new PlaceData(place.name,
-							place.geometry.location.lng,
-							place.geometry.location.lat));
+			
+			
+				for (Place place : places.results) {
+					Log.i(TAG, place.toString());
+					
+					if (!place.isExcludedType()) {
+
+						placesData.add(new PlaceData(place.name,
+								place.geometry.location.lng,
+								place.geometry.location.lat));
+
+					}
 				}
-			}
+			
 			Bundle b = new Bundle();
 			b.putParcelableArrayList("results", placesData);
 			receiver.send(0, b);

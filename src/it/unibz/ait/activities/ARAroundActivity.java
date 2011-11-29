@@ -306,7 +306,7 @@ public class ARAroundActivity extends Activity implements OrientationListener,
 				paint.setColor(Color.WHITE);
 				paint.setShadowLayer(3, 0, 0, Color.BLACK);
 				paint.setTypeface(Typeface.DEFAULT_BOLD);
-				paint.setTextSize(16);
+				paint.setTextSize(12);
 				canvas.drawText(place.getName(), 10, pos, paint);
 				pos = pos + 30;
 			}

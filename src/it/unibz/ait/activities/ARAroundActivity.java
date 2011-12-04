@@ -223,11 +223,15 @@ public class ARAroundActivity extends Activity implements OrientationListener,
 	public void onOrientationChanged(float azimuth, float pitch, float roll) {
 
 		for (PlaceData place : places) {
+			double locAzimuth = Math.abs(currentLocation.bearingTo(place));
 			// azimuth = 41;
 			// boolean visiblePlace = false;
-			double lat1 = currentLocation.getLatitude();
+/*			double lat1 = currentLocation.getLatitude();
 			double lng1 = currentLocation.getLongitude();
+*/			
 			double halfCameraAngle = cameraHorizontalAngle * 0.5;
+		
+			
 			double phoneRightSide = azimuth + halfCameraAngle;
 			if (phoneRightSide > 360)
 				phoneRightSide = phoneRightSide - 360;
@@ -236,24 +240,11 @@ public class ARAroundActivity extends Activity implements OrientationListener,
 			if (phoneLeftSide < 0)
 				phoneLeftSide = phoneLeftSide + 360;
 
-			double lat2 = place.getLatitude();
+/*			double lat2 = place.getLatitude();
 			double lng2 = place.getLongitude();
 			double longitudinalDifference = lng2 - lng1;
 			double latitudinalDifference = lat2 - lat1;
 
-		/*	double locAzimuth = Math
-					.toDegrees((Math.PI * .5d)
-							- Math.atan(latitudinalDifference
-									/ longitudinalDifference));
-			if (longitudinalDifference > 0)
-				locAzimuth = locAzimuth;
-			else if (longitudinalDifference < 0)
-				locAzimuth = locAzimuth + Math.PI;
-			else if (latitudinalDifference < 0)
-				locAzimuth = Math.PI;
-			else
-				locAzimuth = 0;
-*/
 			
 			double y = Math.sin(longitudinalDifference) * Math.cos(lat2);
 			double x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2)* Math.cos(longitudinalDifference);
@@ -263,7 +254,7 @@ public class ARAroundActivity extends Activity implements OrientationListener,
 			double heading = headingDeg*Math.PI/180;
 			angle =((angleDeg + 360)% 360) * Math.PI/180; //normalize to 0 to 360 (instead of -180 to 180), then convert back to radians
 			double locAzimuth = angle * 180/Math.PI;
-			
+*/			
 			
 			// double locAzimuth = 167;
 			if (phoneRightSide >= phoneLeftSide) {
@@ -287,7 +278,7 @@ public class ARAroundActivity extends Activity implements OrientationListener,
 
 			//distance
 			
-			double R = 6371; // km
+			/*double R = 6371; // km
 			double dLat = Math.toRadians(lat2-lat1);
 			double dLon = Math.toRadians(lng2-lng1);
 			double lat1R = Math.toRadians(lat1);
@@ -297,16 +288,16 @@ public class ARAroundActivity extends Activity implements OrientationListener,
 			        Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(lat1R) * Math.cos(lat2R); 
 			double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
 			double distance = R * c;
-			
+*/			
+			double distance = currentLocation.distanceTo(place);
 			// convert from 3D to 2D
-			double xCoord = Math.sin(angle-heading) * distance;
-			double zCoord = Math.cos(angle-heading) * distance;
-			 screenX = (float) ((xCoord * 256) / zCoord);
+			//double xCoord = Math.sin(angle-heading) * distance;
+			//double zCoord = Math.cos(angle-heading) * distance;
+			 //screenX = (float) ((xCoord * 256) / zCoord);
 			 //pitch  - our y
 			// screenY = (float) ((pitch * 256) / zCoord);
-			Log.i(TAGA, String.valueOf(azimuth) + " " + distance + " " + screenX );
-			Log.i(TAGB, place.getProvider() + " " + locAzimuth + place.isVisible());
-
+			Log.i("Phone azimuth", azimuth + "");
+			Log.i("Place data:", "place name: " + place.getProvider() + " place azimuth: " + locAzimuth + " visibility: " + place.isVisible());
 		}
 		poiView.postInvalidate();
 		/*
@@ -353,7 +344,7 @@ public class ARAroundActivity extends Activity implements OrientationListener,
 					paint.setTypeface(Typeface.DEFAULT_BOLD);
 					paint.setTextSize(12);
 
-					canvas.drawText(place.getProvider(), screenX, pos, paint);
+					canvas.drawText(place.getProvider(), 20, pos, paint);
 					
 
 					pos = pos + 30;

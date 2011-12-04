@@ -65,11 +65,10 @@ public class PlacesSearchService extends IntentService {
 					Log.i(TAG, place.toString());
 					
 					if (!place.isExcludedType()) {
-
-						placesData.add(new PlaceData(place.name,
-								place.geometry.location.lng,
-								place.geometry.location.lat));
-
+						PlaceData pData = new PlaceData(place.name);
+						pData.setLongitude(place.geometry.location.lng);
+						pData.setLatitude(place.geometry.location.lat);
+						placesData.add(pData);
 					}
 				}
 			

@@ -236,8 +236,8 @@ public class ARAroundActivity extends Activity implements OrientationListener,
 			if (phoneLeftSide < 0)
 				phoneLeftSide = phoneLeftSide + 360;
 
-			double lat2 = place.getLat();
-			double lng2 = place.getLng();
+			double lat2 = place.getLatitude();
+			double lng2 = place.getLongitude();
 			double longitudinalDifference = lng2 - lng1;
 			double latitudinalDifference = lat2 - lat1;
 
@@ -305,7 +305,7 @@ public class ARAroundActivity extends Activity implements OrientationListener,
 			 //pitch  - our y
 			// screenY = (float) ((pitch * 256) / zCoord);
 			Log.i(TAGA, String.valueOf(azimuth) + " " + distance + " " + screenX );
-			Log.i(TAGB, place.getName() + " " + locAzimuth + place.isVisible());
+			Log.i(TAGB, place.getProvider() + " " + locAzimuth + place.isVisible());
 
 		}
 		poiView.postInvalidate();
@@ -353,7 +353,7 @@ public class ARAroundActivity extends Activity implements OrientationListener,
 					paint.setTypeface(Typeface.DEFAULT_BOLD);
 					paint.setTextSize(12);
 
-					canvas.drawText(place.getName(), screenX, pos, paint);
+					canvas.drawText(place.getProvider(), screenX, pos, paint);
 					
 
 					pos = pos + 30;

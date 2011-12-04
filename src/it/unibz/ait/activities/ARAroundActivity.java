@@ -65,6 +65,8 @@ public class ARAroundActivity extends Activity implements OrientationListener,
 	public float cameraHorizontalAngle;
 	public float cameraVerticalAngle;
 
+	float screenX ;
+	float screenY ;
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -239,7 +241,7 @@ public class ARAroundActivity extends Activity implements OrientationListener,
 			double longitudinalDifference = lng2 - lng1;
 			double latitudinalDifference = lat2 - lat1;
 
-			double locAzimuth = Math
+		/*	double locAzimuth = Math
 					.toDegrees((Math.PI * .5d)
 							- Math.atan(latitudinalDifference
 									/ longitudinalDifference));
@@ -251,7 +253,18 @@ public class ARAroundActivity extends Activity implements OrientationListener,
 				locAzimuth = Math.PI;
 			else
 				locAzimuth = 0;
-
+*/
+			
+			double y = Math.sin(longitudinalDifference) * Math.cos(lat2);
+			double x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2)* Math.cos(longitudinalDifference);
+			double angle = Math.atan2(y, x); //not finished here yet
+			double headingDeg = azimuth;
+			double angleDeg = angle * 180/Math.PI;
+			double heading = headingDeg*Math.PI/180;
+			angle =((angleDeg + 360)% 360) * Math.PI/180; //normalize to 0 to 360 (instead of -180 to 180), then convert back to radians
+			double locAzimuth = angle * 180/Math.PI;
+			
+			
 			// double locAzimuth = 167;
 			if (phoneRightSide >= phoneLeftSide) {
 				if ((locAzimuth > phoneLeftSide)
@@ -272,7 +285,26 @@ public class ARAroundActivity extends Activity implements OrientationListener,
 				}
 			}
 
-			Log.i(TAGA, String.valueOf(azimuth) + " " + cameraVerticalAngle);
+			//distance
+			
+			double R = 6371; // km
+			double dLat = Math.toRadians(lat2-lat1);
+			double dLon = Math.toRadians(lng2-lng1);
+			double lat1R = Math.toRadians(lat1);
+			double lat2R = Math.toRadians(lat2);
+
+			double a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+			        Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(lat1R) * Math.cos(lat2R); 
+			double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+			double distance = R * c;
+			
+			// convert from 3D to 2D
+			double xCoord = Math.sin(angle-heading) * distance;
+			double zCoord = Math.cos(angle-heading) * distance;
+			 screenX = (float) ((xCoord * 256) / zCoord);
+			 //pitch  - our y
+			// screenY = (float) ((pitch * 256) / zCoord);
+			Log.i(TAGA, String.valueOf(azimuth) + " " + distance + " " + screenX );
 			Log.i(TAGB, place.getName() + " " + locAzimuth + place.isVisible());
 
 		}
@@ -321,7 +353,8 @@ public class ARAroundActivity extends Activity implements OrientationListener,
 					paint.setTypeface(Typeface.DEFAULT_BOLD);
 					paint.setTextSize(12);
 
-					canvas.drawText(place.getName(), 10, pos, paint);
+					canvas.drawText(place.getName(), screenX, pos, paint);
+					
 
 					pos = pos + 30;
 				}

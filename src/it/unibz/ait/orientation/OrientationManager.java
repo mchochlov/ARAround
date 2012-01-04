@@ -58,7 +58,7 @@ public class OrientationManager {
 	/**
 	 * Returns true if at least one Orientation sensor is available
 	 */
-	public static boolean isSupported() {
+	/*public static boolean isSupported() {
 		if (supported == null) {
 			if (ARAroundActivity.getContext() != null) {
 				sensorManager = (SensorManager) ARAroundActivity.getContext()
@@ -72,11 +72,11 @@ public class OrientationManager {
 		}
 		return supported;
 	}
-
+*/
 	/**
 	 * Registers a listener and start listening
 	 */
-	public static void startListening(OrientationListener orientationListener) {
+/*	public static void startListening(OrientationListener orientationListener) {
 		sensorManager = (SensorManager) ARAroundActivity.getContext()
 				.getSystemService(Context.SENSOR_SERVICE);
 		List<Sensor> sensors = sensorManager
@@ -88,7 +88,7 @@ public class OrientationManager {
 			listener = orientationListener;
 		}
 	}
-
+*/
 	/**
 	 * The listener that listen to events from the orientation listener
 	 */

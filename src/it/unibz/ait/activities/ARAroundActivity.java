@@ -1,66 +1,47 @@
 package it.unibz.ait.activities;
 
 import it.unibz.ait.R;
-import it.unibz.ait.orientation.OrientationListener;
-import it.unibz.ait.orientation.OrientationManager;
-import it.unibz.ait.model.PlaceData;
-import it.unibz.ait.services.PlacesSearchService;
-import it.unibz.ait.services.ServiceResultReceiver;
+import it.unibz.ait.view.PoiView;
 
 import java.io.IOException;
-import java.util.ArrayList;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.Typeface;
 import android.hardware.Camera;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.Bundle;
-import android.os.Handler;
+import android.os.PowerManager;
+import android.os.PowerManager.WakeLock;
 import android.util.Log;
-
-import android.widget.TextView;
-import android.widget.Toast;
-
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.FrameLayout;
 
-public class ARAroundActivity extends Activity implements OrientationListener,
-		ServiceResultReceiver.Receiver {
+public class ARAroundActivity extends Activity{
 
-	private static Context CONTEXT;
+	//private static Context CONTEXT;
 	private static final String TAG1 = "PlacesLocationListener";
 	private static final String TAG2 = "ARAroundActivity";
 	private static final String TAGA = "Azimuth";
 	private static final String TAGB = "Loc arround azimuth";
-	public Location currentLocation;
+	//public Location currentLocation;
 
-	private static final long MINIMUM_DISTANCE_CHANGE_FOR_UPDATES = 0; // in
+	//private static final long MINIMUM_DISTANCE_CHANGE_FOR_UPDATES = 0; // in
 																		// Meters
-	private static final long MINIMUM_TIME_BETWEEN_UPDATES = 0; // in
+	//private static final long MINIMUM_TIME_BETWEEN_UPDATES = 0; // in
 	// Milliseconds
 
-	protected LocationManager locationManager;
+	//protected LocationManager locationManager;
 	private Camera mCamera;
 	private CameraPreview cameraPreview;
-	private PlacesLocationListener plListener;
-	public ServiceResultReceiver mReceiver;
-	public PoiView poiView;
-	public ArrayList<PlaceData> places = new ArrayList<PlaceData>();
+	//private PlacesLocationListener plListener;
+	//public ServiceResultReceiver mReceiver;
+	private PoiView poiView;
+	//public ArrayList<PlaceData> places = new ArrayList<PlaceData>();
 
 	public float cameraHorizontalAngle;
 	public float cameraVerticalAngle;
@@ -72,8 +53,7 @@ public class ARAroundActivity extends Activity implements OrientationListener,
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.main);
 
-		CONTEXT = this;// -> will write meaning of azimuth
-
+		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		// Create an instance of Camera
 		mCamera = getCameraInstance();
 
@@ -91,16 +71,16 @@ public class ARAroundActivity extends Activity implements OrientationListener,
 		preview.addView(poiView, new LayoutParams(LayoutParams.WRAP_CONTENT,
 				LayoutParams.WRAP_CONTENT));
 
-		plListener = new PlacesLocationListener();
-		locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+		//plListener = new PlacesLocationListener();
+		//locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
-		locationManager.requestLocationUpdates(
-				LocationManager.NETWORK_PROVIDER, MINIMUM_TIME_BETWEEN_UPDATES,
+		//locationManager.requestLocationUpdates(
+			//	LocationManager.NETWORK_PROVIDER, MINIMUM_TIME_BETWEEN_UPDATES,
 				// MINIMUM_DISTANCE_CHANGE_FOR_UPDATES,
 				// new PlacesLocationListener());
-				MINIMUM_DISTANCE_CHANGE_FOR_UPDATES, plListener);
-		mReceiver = new ServiceResultReceiver(new Handler());
-		mReceiver.setReceiver(this);
+				//MINIMUM_DISTANCE_CHANGE_FOR_UPDATES, plListener);
+		//mReceiver = new ServiceResultReceiver(new Handler());
+		//mReceiver.setReceiver(this.poiView);
 	}
 
 	@Override
@@ -127,13 +107,15 @@ public class ARAroundActivity extends Activity implements OrientationListener,
 	protected void onPause() {
 		super.onPause();
 		releaseCamera();
-		locationManager.removeUpdates(plListener);
+		//locationManager.removeUpdates(plListener);
 
-		mReceiver.setReceiver(null);
-		if (OrientationManager.isListening()) {
+		//mReceiver.setReceiver(null);
+		/*if (OrientationManager.isListening()) {
 			OrientationManager.stopListening();
 		}
-
+*/
+		poiView.stopLocationUpdates();
+		poiView.stopSensorUpdates();
 	}
 
 	@Override
@@ -142,12 +124,14 @@ public class ARAroundActivity extends Activity implements OrientationListener,
 		if (mCamera == null) {
 			cameraPreview.setCamera(getCameraInstance());
 		}
-		if (OrientationManager.isSupported()) {
+		/*if (OrientationManager.isSupported()) {
 			OrientationManager.startListening(this);
 		}
 		if (mReceiver.getReceiver() == null) {
-			mReceiver.setReceiver(this);
-		}
+			mReceiver.setReceiver(this.poiView);
+		}*/
+		poiView.startLocationUpdates();
+		poiView.startSensorUpdates();
 	}
 
 	public static Camera getCameraInstance() {
@@ -167,7 +151,7 @@ public class ARAroundActivity extends Activity implements OrientationListener,
 		}
 	}
 
-	public class PlacesLocationListener implements LocationListener {
+	/*public class PlacesLocationListener implements LocationListener {
 
 		public void onLocationChanged(Location location) {
 			Log.i(TAG1, "Location: , longtitude - " + location.getLongitude()
@@ -206,19 +190,11 @@ public class ARAroundActivity extends Activity implements OrientationListener,
 
 	}
 
-	protected void onDestroy() {
-		super.onDestroy();
-		if (OrientationManager.isListening()) {
-			OrientationManager.stopListening();
-		}
-
-	}
-
 	public static Context getContext() {
 		return CONTEXT;
 	}
-
-	public void onOrientationChanged(float azimuth, float pitch, float roll) {
+*/
+/*	public void onOrientationChanged(float azimuth, float pitch, float roll) {
 
 		for (PlaceData place : places) {
 			double locAzimuth = Math.abs(currentLocation.bearingTo(place));
@@ -276,7 +252,7 @@ public class ARAroundActivity extends Activity implements OrientationListener,
 
 			//distance
 			
-/*			double R = 6371; // km
+			double R = 6371; // km
 			double dLat = Math.toRadians(lat2-lat1);
 			double dLon = Math.toRadians(lng2-lng1);
 			double lat1R = Math.toRadians(lat1);
@@ -286,7 +262,7 @@ public class ARAroundActivity extends Activity implements OrientationListener,
 			        Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(lat1R) * Math.cos(lat2R); 
 			double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
 			double distance = R * c;
-*/			
+			
 			double distance = currentLocation.distanceTo(place);
 			// convert from 3D to 2D
 			double xCoord = Math.sin(angle-heading) * distance;
@@ -298,14 +274,14 @@ public class ARAroundActivity extends Activity implements OrientationListener,
 			Log.i("Place data:", "place name: " + place.getProvider() + " place azimuth: " + locAzimuth + " visibility: " + place.isVisible());
 		}
 		poiView.postInvalidate();
-		/*
+		
 		 * ((TextView) findViewById(R.id.pitch)).setText(String.valueOf(pitch));
 		 * ((TextView) findViewById(R.id.roll)).setText(String.valueOf(roll));
-		 */
+		 
 	}
-
+*/
 	// @Override
-	public void onBottomUp() {
+/*	public void onBottomUp() {
 		// Toast.makeText(this, "Bottom UP", 1000).show();
 	}
 
@@ -323,31 +299,7 @@ public class ARAroundActivity extends Activity implements OrientationListener,
 	public void onTopUp() {
 		// Toast.makeText(this, "Top UP", 1000).show();
 	}
-
-	public class PoiView extends View {
-
-		public PoiView(Context context) {
-			super(context);
-		}
-
-		@Override
-		protected void onDraw(Canvas canvas) {
-			for (PlaceData place : places) {
-				if (place.isVisible()) {
-					Paint paint = new Paint();
-					paint.setStyle(Paint.Style.FILL_AND_STROKE);
-					paint.setColor(Color.WHITE);
-					paint.setShadowLayer(3, 0, 0, Color.BLACK);
-					paint.setTypeface(Typeface.DEFAULT_BOLD);
-					paint.setTextSize(12);
-					canvas.drawText(place.getProvider(), place.getX(), place.getY(), paint);
-				}
-			}
-
-			super.onDraw(canvas);
-		}
-	}
-
+*/
 	/** A basic Camera preview class */
 	public class CameraPreview extends SurfaceView implements
 			SurfaceHolder.Callback {
@@ -416,11 +368,6 @@ public class ARAroundActivity extends Activity implements OrientationListener,
 						"Error starting camera preview: " + e.getMessage());
 			}
 		}
-	}
-
-	public void onReceiveResult(int resultCode, Bundle resultData) {
-		places = resultData.getParcelableArrayList("results");
-		poiView.postInvalidate();
 	}
 
 }

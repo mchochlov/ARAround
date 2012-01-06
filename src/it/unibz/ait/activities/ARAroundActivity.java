@@ -23,28 +23,10 @@ import android.widget.FrameLayout;
 
 public class ARAroundActivity extends Activity{
 
-	//private static Context CONTEXT;
-	private static final String TAG1 = "PlacesLocationListener";
-	private static final String TAG2 = "ARAroundActivity";
-	private static final String TAGA = "Azimuth";
-	private static final String TAGB = "Loc arround azimuth";
-	//public Location currentLocation;
-
-	//private static final long MINIMUM_DISTANCE_CHANGE_FOR_UPDATES = 0; // in
-																		// Meters
-	//private static final long MINIMUM_TIME_BETWEEN_UPDATES = 0; // in
-	// Milliseconds
-
-	//protected LocationManager locationManager;
+	private static final String TAG = "ARAroundActivity";
 	private Camera mCamera;
 	private CameraPreview cameraPreview;
-	//private PlacesLocationListener plListener;
-	//public ServiceResultReceiver mReceiver;
 	private PoiView poiView;
-	//public ArrayList<PlaceData> places = new ArrayList<PlaceData>();
-
-	public float cameraHorizontalAngle;
-	public float cameraVerticalAngle;
 
 	/** Called when the activity is first created. */
 	@Override
@@ -57,30 +39,19 @@ public class ARAroundActivity extends Activity{
 		// Create an instance of Camera
 		mCamera = getCameraInstance();
 
-		cameraHorizontalAngle = mCamera.getParameters()
+		float cameraHorizontalAngle = mCamera.getParameters()
 				.getHorizontalViewAngle();
 
-		cameraVerticalAngle = mCamera.getParameters().getVerticalViewAngle();
+		float cameraVerticalAngle = mCamera.getParameters().getVerticalViewAngle();
 
 		// Create our Preview view and set it as the content of our activity.
 		cameraPreview = new CameraPreview(this, mCamera);
 		FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
 		preview.addView(cameraPreview);
 
-		poiView = new PoiView(this);
+		poiView = new PoiView(this, cameraHorizontalAngle, cameraVerticalAngle);
 		preview.addView(poiView, new LayoutParams(LayoutParams.WRAP_CONTENT,
 				LayoutParams.WRAP_CONTENT));
-
-		//plListener = new PlacesLocationListener();
-		//locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-
-		//locationManager.requestLocationUpdates(
-			//	LocationManager.NETWORK_PROVIDER, MINIMUM_TIME_BETWEEN_UPDATES,
-				// MINIMUM_DISTANCE_CHANGE_FOR_UPDATES,
-				// new PlacesLocationListener());
-				//MINIMUM_DISTANCE_CHANGE_FOR_UPDATES, plListener);
-		//mReceiver = new ServiceResultReceiver(new Handler());
-		//mReceiver.setReceiver(this.poiView);
 	}
 
 	@Override
@@ -107,13 +78,6 @@ public class ARAroundActivity extends Activity{
 	protected void onPause() {
 		super.onPause();
 		releaseCamera();
-		//locationManager.removeUpdates(plListener);
-
-		//mReceiver.setReceiver(null);
-		/*if (OrientationManager.isListening()) {
-			OrientationManager.stopListening();
-		}
-*/
 		poiView.stopLocationUpdates();
 		poiView.stopSensorUpdates();
 	}
@@ -124,12 +88,6 @@ public class ARAroundActivity extends Activity{
 		if (mCamera == null) {
 			cameraPreview.setCamera(getCameraInstance());
 		}
-		/*if (OrientationManager.isSupported()) {
-			OrientationManager.startListening(this);
-		}
-		if (mReceiver.getReceiver() == null) {
-			mReceiver.setReceiver(this.poiView);
-		}*/
 		poiView.startLocationUpdates();
 		poiView.startSensorUpdates();
 	}
@@ -139,7 +97,7 @@ public class ARAroundActivity extends Activity{
 		try {
 			c = Camera.open(); // attempt to get a Camera instance
 		} catch (Exception e) {
-			Log.d(TAG2, "Error setting camera preview: " + e.getMessage());
+			Log.d(TAG, "Error setting camera preview: " + e.getMessage());
 		}
 		return c; // returns null if camera is unavailable
 	}
@@ -151,155 +109,6 @@ public class ARAroundActivity extends Activity{
 		}
 	}
 
-	/*public class PlacesLocationListener implements LocationListener {
-
-		public void onLocationChanged(Location location) {
-			Log.i(TAG1, "Location: , longtitude - " + location.getLongitude()
-					+ ", latitude - " + location.getLatitude());
-
-			Log.i(TAG2, "About to execute service...");
-			if (isOnline() != null) {
-				Log.i(TAG2, "Starting service...");
-
-				Intent intent = new Intent(ARAroundActivity.this,
-						PlacesSearchService.class);
-				intent.putExtra("longtitude", location.getLongitude());
-				intent.putExtra("latitude", location.getLatitude());
-				intent.putExtra("receiver", mReceiver);
-				startService(intent);
-				currentLocation = location;
-			}
-		}
-
-		public void onProviderDisabled(String s) {
-			// Log.i(TAG1, "Provider disabled by the user. GPS turned off");
-		}
-
-		public void onProviderEnabled(String s) {
-			// Log.i(TAG1, "Provider enabled by the user. GPS turned on");
-		}
-
-		public void onStatusChanged(String s, int i, Bundle b) {
-			Log.i(TAG1, "Provider status changed");
-		}
-
-		public NetworkInfo isOnline() {
-			ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-			return cm.getActiveNetworkInfo();
-		}
-
-	}
-
-	public static Context getContext() {
-		return CONTEXT;
-	}
-*/
-/*	public void onOrientationChanged(float azimuth, float pitch, float roll) {
-
-		for (PlaceData place : places) {
-			double locAzimuth = Math.abs(currentLocation.bearingTo(place));
-			// azimuth = 41;
-			// boolean visiblePlace = false;
-			double lat1 = currentLocation.getLatitude();
-			double lng1 = currentLocation.getLongitude();
-			
-			double halfCameraAngle = cameraHorizontalAngle * 0.5;
-		
-			
-			double phoneRightSide = azimuth + halfCameraAngle;
-			if (phoneRightSide > 360)
-				phoneRightSide = phoneRightSide - 360;
-
-			double phoneLeftSide = azimuth - halfCameraAngle;
-			if (phoneLeftSide < 0)
-				phoneLeftSide = phoneLeftSide + 360;
-
-			double lat2 = place.getLatitude();
-			double lng2 = place.getLongitude();
-			double longitudinalDifference = lng2 - lng1;
-//			double latitudinalDifference = lat2 - lat1;
-
-			
-			double y = Math.sin(longitudinalDifference) * Math.cos(lat2);
-			double x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2)* Math.cos(longitudinalDifference);
-			double angle = Math.atan2(y, x); //not finished here yet
-			//double headingDeg = azimuth;
-			double angleDeg = angle * 180/Math.PI;
-			double heading = azimuth * Math.PI/180;
-			angle =((angleDeg + 360)% 360) * Math.PI/180; //normalize to 0 to 360 (instead of -180 to 180), then convert back to radians
-//			double locAzimuth = angle * 180/Math.PI;
-			
-			
-			// double locAzimuth = 167;
-			if (phoneRightSide >= phoneLeftSide) {
-				if ((locAzimuth > phoneLeftSide)
-						&& (locAzimuth < phoneRightSide)) {
-					place.setVisible(true);
-
-				} else {
-					place.setVisible(false);
-				}
-
-			}
-			if (phoneRightSide <= phoneLeftSide) {
-				if ((locAzimuth < (phoneRightSide + 360.0))
-						&& (locAzimuth > phoneLeftSide)) {
-					place.setVisible(true);
-				} else {
-					place.setVisible(false);
-				}
-			}
-
-			//distance
-			
-			double R = 6371; // km
-			double dLat = Math.toRadians(lat2-lat1);
-			double dLon = Math.toRadians(lng2-lng1);
-			double lat1R = Math.toRadians(lat1);
-			double lat2R = Math.toRadians(lat2);
-
-			double a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-			        Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(lat1R) * Math.cos(lat2R); 
-			double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
-			double distance = R * c;
-			
-			double distance = currentLocation.distanceTo(place);
-			// convert from 3D to 2D
-			double xCoord = Math.sin(angle-heading) * distance;
-			double zCoord = Math.cos(angle-heading) * distance;
-			place.setX((float) ((xCoord * 256) / zCoord));
-			 //pitch  - our y
-			place.setY((float) ((zCoord * 256) / zCoord));
-			Log.i("Phone info:", "azimuth: " + azimuth + " pitch: " + pitch + " roll: " + roll );
-			Log.i("Place data:", "place name: " + place.getProvider() + " place azimuth: " + locAzimuth + " visibility: " + place.isVisible());
-		}
-		poiView.postInvalidate();
-		
-		 * ((TextView) findViewById(R.id.pitch)).setText(String.valueOf(pitch));
-		 * ((TextView) findViewById(R.id.roll)).setText(String.valueOf(roll));
-		 
-	}
-*/
-	// @Override
-/*	public void onBottomUp() {
-		// Toast.makeText(this, "Bottom UP", 1000).show();
-	}
-
-	// @Override
-	public void onLeftUp() {
-		// Toast.makeText(this, "Left UP", 1000).show();
-	}
-
-	// @Override
-	public void onRightUp() {
-		// Toast.makeText(this, "Right UP", 1000).show();
-	}
-
-	// @Override
-	public void onTopUp() {
-		// Toast.makeText(this, "Top UP", 1000).show();
-	}
-*/
 	/** A basic Camera preview class */
 	public class CameraPreview extends SurfaceView implements
 			SurfaceHolder.Callback {

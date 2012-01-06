@@ -44,30 +44,25 @@ public class PoiView extends View implements LocationListener,
 	private LocationManager locationManager;
 	private Location currentLocation = null;
 	private SensorManager mSensorManager;
-	private Sensor mAccelerometer;
 	private float[] mMData;
 	private float[] mGData;
 	private float[] mRMatrix = new float[MATRIX_SIZE];
 	private float[] mIMatrix = new float[MATRIX_SIZE];
 	private float[] mOutRMatrix = new float[MATRIX_SIZE];
 	private float[] values = new float[3];
-	private float rawAzimuth;
-	private float azimuth;
-	private float rawInclination;
-	private float inclination;
-	private float oldInclination;
-	private float oldAzimuth;
-	public static volatile float kFilteringFactor = (float) 0.045; // o 0.05?
 	private static final long MIN_TIME = 0;
 	private static final float MIN_DISTANCE = 5;
 	private static final int TWO_MINUTES = 1000 * 60 * 2;
 	private static final int MATRIX_SIZE = 16;
 	private List<PlaceData> placesData;
-	private float pitch;
-	private float roll;
+	private float cameraHorizontalAngle;
+	private float cameraVerticalAngle;
 
-	public PoiView(Context context) {
+
+	public PoiView(Context context, float cameraHorizontalAngle, float cameraVerticalAngle) {
 		super(context);
+		this.cameraHorizontalAngle = cameraHorizontalAngle;
+		this.cameraVerticalAngle = cameraVerticalAngle;
 		placesData = new ArrayList<PlaceData>();
 		/* get sensor manager */
 		mSensorManager = (SensorManager) context
@@ -415,14 +410,14 @@ public class PoiView extends View implements LocationListener,
 			double lat1 = currentLocation.getLatitude();
 			double lng1 = currentLocation.getLongitude();
 			
-			double halfCameraAngle = 54 * 0.5;
+			double halfCameraHAngle = cameraHorizontalAngle * 0.5;
 		
 			
-			double phoneRightSide = azimuth + halfCameraAngle;
+			double phoneRightSide = azimuth + halfCameraHAngle;
 			if (phoneRightSide > 360)
 				phoneRightSide = phoneRightSide - 360;
 
-			double phoneLeftSide = azimuth - halfCameraAngle;
+			double phoneLeftSide = azimuth - halfCameraHAngle;
 			if (phoneLeftSide < 0)
 				phoneLeftSide = phoneLeftSide + 360;
 

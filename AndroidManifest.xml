@@ -28,8 +28,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <service android:name=".services.PlacesSearchService" />
     </application>
 
     <uses-feature android:name="android.hardware.camera" />

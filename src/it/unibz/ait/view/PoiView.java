@@ -57,6 +57,7 @@ public class PoiView extends View implements LocationListener,
 	private List<PlaceData> placesData;
 	private float cameraHorizontalAngle;
 	private float cameraVerticalAngle;
+	private int mCount;
 
 
 	public PoiView(Context context, float cameraHorizontalAngle, float cameraVerticalAngle) {
@@ -239,7 +240,7 @@ public class PoiView extends View implements LocationListener,
 						pData.setLongitude(place.geometry.location.lng);
 						pData.setLatitude(place.geometry.location.lat);
 						placesData.add(pData);
-						Log.i(TAG, "Places : " + pData.getProvider());
+						//Log.i(TAG, "Places : " + pData.getProvider());
 					}
 				}
 				return placesData.size();
@@ -290,7 +291,8 @@ public class PoiView extends View implements LocationListener,
 				mGData = event.values.clone();
 				break;
 			}
-			if (mMData != null && mGData != null) {
+			//if (mMData != null && mGData != null) {
+			if (mCount++ > 10) {
 				/*
 				 * Compute rotation and inclination matrix
 				 * based on gravity and magnetic values
@@ -306,15 +308,21 @@ public class PoiView extends View implements LocationListener,
 				 * values[0] = azimuth values[1] = pitch values[2] = roll 
 				 */
 				SensorManager.getOrientation(mOutRMatrix, values);
-
-/*				Log.d("GRAVITY_ACCEL", "azimuth: " + Math.round(Math.toDegrees(values[0])) +
+				/*
+				 * transform azimuth to 0-360 degrees
+				 */
+				float azimuth = Math.round(Math.toDegrees(values[0]));
+				if (azimuth < 0)
+					azimuth = 360 - Math.abs(azimuth);
+/*				Log.d("GRAVITY_ACCEL", "azimuth: " + azimuth +
 	                    "  pitch: " + Math.round(Math.toDegrees(values[1])) +
 	                    "  roll: " + Math.round(Math.toDegrees(values[2])) 
 	                    );
-*/				recalculateVisiblePlaces(Math.round(Math.toDegrees(values[0])), 
+*/
+				recalculateVisiblePlaces(azimuth, 
 						Math.round(Math.toDegrees(values[1])), 
 						Math.round(Math.toDegrees(values[2])));
-
+				mCount = 0;
 			}
 		}
 	}
@@ -403,6 +411,19 @@ public class PoiView extends View implements LocationListener,
 							+ locAzimuth + " visibility: " + place.isVisible());
 		}
 		*/
+		Log.i("Phone info:", "azimuth: " + azimuth + " pitch: " + pitch + " roll: " + roll +
+				" hor_angle: " + cameraHorizontalAngle + " ver_angle: " + cameraVerticalAngle +
+				" longitude: " + currentLocation.getLongitude() + " latitude: " + currentLocation.getLatitude());
+		double halfCameraHAngle = cameraHorizontalAngle * 0.5;
+		double phoneRightSide = azimuth + halfCameraHAngle;
+		if (phoneRightSide > 360)
+			phoneRightSide = phoneRightSide - 360;
+
+		double phoneLeftSide = azimuth - halfCameraHAngle;
+		if (phoneLeftSide < 0)
+			phoneLeftSide = phoneLeftSide + 360;
+		Log.i("Phone info 2:", "halfAngle " + halfCameraHAngle + " phone_right_side: " + phoneRightSide + " phone_left_side: " + phoneLeftSide);
+		
 		for (PlaceData place : placesData) {
 			double locAzimuth = Math.abs(currentLocation.bearingTo(place));
 			// azimuth = 41;
@@ -410,16 +431,8 @@ public class PoiView extends View implements LocationListener,
 			double lat1 = currentLocation.getLatitude();
 			double lng1 = currentLocation.getLongitude();
 			
-			double halfCameraHAngle = cameraHorizontalAngle * 0.5;
 		
 			
-			double phoneRightSide = azimuth + halfCameraHAngle;
-			if (phoneRightSide > 360)
-				phoneRightSide = phoneRightSide - 360;
-
-			double phoneLeftSide = azimuth - halfCameraHAngle;
-			if (phoneLeftSide < 0)
-				phoneLeftSide = phoneLeftSide + 360;
 
 			double lat2 = place.getLatitude();
 			double lng2 = place.getLongitude();
@@ -448,9 +461,10 @@ public class PoiView extends View implements LocationListener,
 				}
 
 			}
+			//14 323 3
 			if (phoneRightSide <= phoneLeftSide) {
-				if ((locAzimuth < (phoneRightSide + 360.0))
-						&& (locAzimuth > phoneLeftSide)) {
+				if ((locAzimuth < phoneRightSide)
+						|| (locAzimuth > phoneLeftSide)) {
 					place.setVisible(true);
 				} else {
 					place.setVisible(false);
@@ -477,7 +491,6 @@ public class PoiView extends View implements LocationListener,
 			place.setX((float) ((xCoord * 256) / zCoord));
 			 //pitch  - our y
 			place.setY((float) ((zCoord * 256) / zCoord));
-			Log.i("Phone info:", "azimuth: " + azimuth + " pitch: " + pitch + " roll: " + roll + "longitude: " + currentLocation.getLongitude() + "latitude: " + currentLocation.getLatitude());
 			Log.i("Place data:", "place name: " + place.getProvider() + " place azimuth: " + locAzimuth + " visibility: " + place.isVisible());
 		}
 

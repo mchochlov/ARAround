@@ -57,13 +57,17 @@ public class PoiView extends View implements LocationListener,
 	private List<PlaceData> placesData;
 	private float cameraHorizontalAngle;
 	private float cameraVerticalAngle;
+	private int widthPixels;
+	private int heightPixels;
 	private int mCount;
 
 
-	public PoiView(Context context, float cameraHorizontalAngle, float cameraVerticalAngle) {
+	public PoiView(Context context, float cameraHorizontalAngle, float cameraVerticalAngle, int widthPixels, int heightPixels) {
 		super(context);
 		this.cameraHorizontalAngle = cameraHorizontalAngle;
 		this.cameraVerticalAngle = cameraVerticalAngle;
+		this.widthPixels = widthPixels;
+		this.heightPixels = heightPixels;
 		placesData = new ArrayList<PlaceData>();
 		/* get sensor manager */
 		mSensorManager = (SensorManager) context
@@ -328,9 +332,10 @@ public class PoiView extends View implements LocationListener,
 	}
 
 	private void recalculateVisiblePlaces(float azimuth, float pitch, float roll) {
-				Log.i("Phone info:", "azimuth: " + azimuth + " pitch: " + pitch + " roll: " + roll +
+		Log.i("Phone info:", "azimuth: " + azimuth + " pitch: " + pitch + " roll: " + roll +
 				" hor_angle: " + cameraHorizontalAngle + " ver_angle: " + cameraVerticalAngle +
 				" longitude: " + currentLocation.getLongitude() + " latitude: " + currentLocation.getLatitude());
+		
 		double halfCameraHAngle = cameraHorizontalAngle * 0.5;
 		double phoneRightSide = azimuth + halfCameraHAngle;
 		if (phoneRightSide > 360)
@@ -343,13 +348,9 @@ public class PoiView extends View implements LocationListener,
 		
 		for (PlaceData place : placesData) {
 			double locAzimuth = Math.abs(currentLocation.bearingTo(place));
-			// azimuth = 41;
-			// boolean visiblePlace = false;
-			double lat1 = currentLocation.getLatitude();
+			/*double lat1 = currentLocation.getLatitude();
 			double lng1 = currentLocation.getLongitude();
-			
 		
-			
 
 			double lat2 = place.getLatitude();
 			double lng2 = place.getLongitude();
@@ -365,9 +366,7 @@ public class PoiView extends View implements LocationListener,
 			double heading = azimuth * Math.PI/180;
 			angle =((angleDeg + 360)% 360) * Math.PI/180; //normalize to 0 to 360 (instead of -180 to 180), then convert back to radians
 //			double locAzimuth = angle * 180/Math.PI;
-			
-			
-			// double locAzimuth = 167;
+*/			
 			if (phoneRightSide >= phoneLeftSide) {
 				if ((locAzimuth > phoneLeftSide)
 						&& (locAzimuth < phoneRightSide)) {
@@ -378,7 +377,6 @@ public class PoiView extends View implements LocationListener,
 				}
 
 			}
-			//14 323 3
 			if (phoneRightSide <= phoneLeftSide) {
 				if ((locAzimuth < phoneRightSide)
 						|| (locAzimuth > phoneLeftSide)) {
@@ -388,8 +386,7 @@ public class PoiView extends View implements LocationListener,
 				}
 			}
 
-			//distance
-			
+			//distance			
 			/*double R = 6371; // km
 			double dLat = Math.toRadians(lat2-lat1);
 			double dLon = Math.toRadians(lng2-lng1);
@@ -401,24 +398,50 @@ public class PoiView extends View implements LocationListener,
 			double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
 			double distance = R * c;
 			*/
-			double distance = currentLocation.distanceTo(place);
+			
+			/*
+			 * Transform angle to pixels
+			 * n - location azimuth in digrees
+			 * (rightside - leftside) - interval
+			 * (n-leftside)*1/interval
+			 */
+			if (phoneRightSide >= phoneLeftSide) {
+				double interval = phoneRightSide - phoneLeftSide;
+				double weight = (locAzimuth - phoneLeftSide)/interval;
+				place.setX((float) (weight*widthPixels));
+			}
+			if (phoneRightSide <= phoneLeftSide){
+				double mPhoneRightSide = phoneRightSide + 360;
+				double mLocAzimuth;
+				if (locAzimuth >= 0)
+					mLocAzimuth = locAzimuth + 360;
+				else
+					mLocAzimuth = locAzimuth;
+				double interval = mPhoneRightSide - phoneLeftSide;
+				double weight = (mLocAzimuth - phoneLeftSide)/interval;
+				place.setX((float) (weight*widthPixels));
+			}
+
+			
+			/*double distance = currentLocation.distanceTo(place);
 			// convert from 3D to 2D
 			double xCoord = Math.sin(angle-heading) * distance;
 			double zCoord = Math.cos(angle-heading) * distance;
 			place.setX((float) ((xCoord * 256) / zCoord));
 			 //pitch  - our y
 			place.setY((float) ((zCoord * 256) / zCoord));
+			*/
 			Log.i("Place data:", "place name: " + place.getProvider() + " place azimuth: " + locAzimuth + " visibility: " + place.isVisible());
 		}
 
 	}
 
 	@Override
-	protected void onDraw(Canvas canvas) {
-		
+	protected void onDraw(Canvas canvas) {		
 		for (PlaceData place : placesData) {
 			if (place.isVisible()) {
 				Paint paint = new Paint();
+				paint.setTextAlign(Paint.Align.CENTER);
 				paint.setStyle(Paint.Style.FILL_AND_STROKE);
 				paint.setColor(Color.WHITE);
 				paint.setShadowLayer(3, 0, 0, Color.BLACK);

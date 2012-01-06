@@ -11,8 +11,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.hardware.Camera;
 import android.os.Bundle;
-import android.os.PowerManager;
-import android.os.PowerManager.WakeLock;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -44,12 +43,15 @@ public class ARAroundActivity extends Activity{
 
 		float cameraVerticalAngle = mCamera.getParameters().getVerticalViewAngle();
 
+		DisplayMetrics metrics = new DisplayMetrics();
+		getWindowManager().getDefaultDisplay().getMetrics(metrics);
+		Log.i(TAG, "pixelWidth: " + metrics.widthPixels + " pixelHeight: " + metrics.heightPixels);
 		// Create our Preview view and set it as the content of our activity.
 		cameraPreview = new CameraPreview(this, mCamera);
 		FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
 		preview.addView(cameraPreview);
 
-		poiView = new PoiView(this, cameraHorizontalAngle, cameraVerticalAngle);
+		poiView = new PoiView(this, cameraHorizontalAngle, cameraVerticalAngle, metrics.widthPixels, metrics.heightPixels);
 		preview.addView(poiView, new LayoutParams(LayoutParams.WRAP_CONTENT,
 				LayoutParams.WRAP_CONTENT));
 	}

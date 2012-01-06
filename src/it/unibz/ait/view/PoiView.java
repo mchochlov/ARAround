@@ -45,11 +45,11 @@ public class PoiView extends View implements LocationListener,
 	private Location currentLocation = null;
 	private SensorManager mSensorManager;
 	private Sensor mAccelerometer;
-	private float[] mags;
-	private float[] accels;
-	private float[] R1 = new float[MATRIX_SIZE];
-	private float[] I = new float[MATRIX_SIZE];
-	private float[] outR = new float[MATRIX_SIZE];
+	private float[] mMData;
+	private float[] mGData;
+	private float[] mRMatrix = new float[MATRIX_SIZE];
+	private float[] mIMatrix = new float[MATRIX_SIZE];
+	private float[] mOutRMatrix = new float[MATRIX_SIZE];
 	private float[] values = new float[3];
 	private float rawAzimuth;
 	private float azimuth;
@@ -268,16 +268,11 @@ public class PoiView extends View implements LocationListener,
 
 	public void startSensorUpdates() {
 		mSensorManager.registerListener(this,
-				mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION),
-				SensorManager.SENSOR_DELAY_UI);
-		/*
-		mSensorManager.registerListener(this,
 				mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),
-				SensorManager.SENSOR_DELAY_UI);
+				SensorManager.SENSOR_DELAY_NORMAL);
 		mSensorManager.registerListener(this,
 				mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
-				SensorManager.SENSOR_DELAY_UI);
-				*/
+				SensorManager.SENSOR_DELAY_NORMAL);
 	}
 
 	public void stopSensorUpdates() {
@@ -288,46 +283,44 @@ public class PoiView extends View implements LocationListener,
 	}
 
 	public void onSensorChanged(SensorEvent event) {
-		/*
 		synchronized (this) {
 			if (event.sensor.getType() != Sensor.TYPE_ACCELEROMETER
 					&& event.sensor.getType() != Sensor.TYPE_MAGNETIC_FIELD)
 				return;
-			if (event.accuracy == SensorManager.SENSOR_STATUS_UNRELIABLE)
-				return;
 			switch (event.sensor.getType()) {
 			case Sensor.TYPE_MAGNETIC_FIELD:
-				mags = event.values.clone();
+				mMData = event.values.clone();
 				break;
 			case Sensor.TYPE_ACCELEROMETER:
-				accels = event.values.clone();
+				mGData = event.values.clone();
 				break;
 			}
-			if (mags != null && accels != null) {
-				SensorManager.getRotationMatrix(R1, I, accels, mags);
-				SensorManager.remapCoordinateSystem(R1, SensorManager.AXIS_X,
-						SensorManager.AXIS_Z, outR);
-				SensorManager.getOrientation(outR, values);
-				rawAzimuth = (float) Math.round(Math.toDegrees(values[0]));
-				azimuth = (rawAzimuth + 360) % 360;
-				azimuth = (float) ((rawAzimuth * kFilteringFactor) + (azimuth * (1.0 - kFilteringFactor)));
-				rawInclination = (float) Math.round(Math.toDegrees(values[1]));
-				inclination = (float) ((rawInclination * kFilteringFactor) + (inclination * (1.0 - kFilteringFactor)));
-				if (Math.abs(azimuth - oldAzimuth) > 3
-						|| Math.abs(inclination - oldInclination) > 3) {
-					oldAzimuth = (float) azimuth;
-					oldInclination = inclination;
-					recalculateVisiblePlaces(azimuth);
-				}
+			if (mMData != null && mGData != null) {
+				/*
+				 * Compute rotation and inclination matrix
+				 * based on gravity and magnetic values
+				 */
+				SensorManager.getRotationMatrix(mRMatrix, mIMatrix, mGData, mMData);
+				/*
+				 * transform rotation matrix to new matrix - mOutRMatrix
+				 */
+				SensorManager.remapCoordinateSystem(mRMatrix, SensorManager.AXIS_X,
+						SensorManager.AXIS_Z, mOutRMatrix);
+				/*
+				 * Calculate orientation from rotation matrix
+				 * values[0] = azimuth values[1] = pitch values[2] = roll 
+				 */
+				SensorManager.getOrientation(mOutRMatrix, values);
+
+/*				Log.d("GRAVITY_ACCEL", "azimuth: " + Math.round(Math.toDegrees(values[0])) +
+	                    "  pitch: " + Math.round(Math.toDegrees(values[1])) +
+	                    "  roll: " + Math.round(Math.toDegrees(values[2])) 
+	                    );
+*/				recalculateVisiblePlaces(Math.round(Math.toDegrees(values[0])), 
+						Math.round(Math.toDegrees(values[1])), 
+						Math.round(Math.toDegrees(values[2])));
+
 			}
-		}
-		*/
-		synchronized (this) {
-			azimuth = event.values[0]; // azimuth
-			pitch = event.values[1]; // pitch
-			roll = event.values[2]; // roll
-			
-			recalculateVisiblePlaces(azimuth, pitch, roll);
 		}
 	}
 
@@ -489,7 +482,7 @@ public class PoiView extends View implements LocationListener,
 			place.setX((float) ((xCoord * 256) / zCoord));
 			 //pitch  - our y
 			place.setY((float) ((zCoord * 256) / zCoord));
-			Log.i("Phone info:", "azimuth: " + azimuth + " pitch: " + pitch + " roll: " + roll );
+			Log.i("Phone info:", "azimuth: " + azimuth + " pitch: " + pitch + " roll: " + roll + "longitude: " + currentLocation.getLongitude() + "latitude: " + currentLocation.getLatitude());
 			Log.i("Place data:", "place name: " + place.getProvider() + " place azimuth: " + locAzimuth + " visibility: " + place.isVisible());
 		}
 

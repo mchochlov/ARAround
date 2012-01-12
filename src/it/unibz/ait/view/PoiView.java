@@ -208,7 +208,7 @@ public class PoiView extends View implements LocationListener,
 		private final HttpTransport transport = new ApacheHttpTransport();
 		private static final String API_KEY = "AIzaSyDsuAJz24_oGbgqUzALidG2jD_-Wu-831E";
 		private static final String TAG = "PlacesSearchService";
-		private static final float RADIUS = 1000;
+		private static final float RADIUS = 150;
 
 		@Override
 		protected Integer doInBackground(Location... location) {
@@ -347,7 +347,10 @@ public class PoiView extends View implements LocationListener,
 		Log.i("Phone info 2:", "halfAngle " + halfCameraHAngle + " phone_right_side: " + phoneRightSide + " phone_left_side: " + phoneLeftSide);
 		
 		for (PlaceData place : placesData) {
-			double locAzimuth = Math.abs(currentLocation.bearingTo(place));
+			double locAzimuth = currentLocation.bearingTo(place);
+			if (locAzimuth < 0)
+				locAzimuth = locAzimuth + 360.0;
+			Log.i("LOCATION AZIMUTH", "locAzimuth: " + locAzimuth);
 			if (phoneRightSide >= phoneLeftSide) {
 				if ((locAzimuth > phoneLeftSide)
 						&& (locAzimuth < phoneRightSide)) {
@@ -358,7 +361,7 @@ public class PoiView extends View implements LocationListener,
 				}
 
 			}
-			if (phoneRightSide <= phoneLeftSide) {
+			if (phoneRightSide < phoneLeftSide) {
 				if ((locAzimuth < phoneRightSide)
 						|| (locAzimuth > phoneLeftSide)) {
 					place.setVisible(true);
@@ -396,7 +399,8 @@ public class PoiView extends View implements LocationListener,
 	}
 
 	@Override
-	protected void onDraw(Canvas canvas) {		
+	protected void onDraw(Canvas canvas) {	
+		float y = 20;
 		for (PlaceData place : placesData) {
 			if (place.isVisible()) {
 				Paint paint = new Paint();
@@ -407,7 +411,9 @@ public class PoiView extends View implements LocationListener,
 				paint.setTypeface(Typeface.DEFAULT_BOLD);
 				paint.setTextSize(12);
 				canvas.drawText(place.getProvider(), place.getX(),
-						30, paint);
+						y, paint);
+				y = y + 20;
+				if (y >= heightPixels) y = 20;
 			}
 		}
 		super.onDraw(canvas);

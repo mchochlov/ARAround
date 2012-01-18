@@ -41,24 +41,72 @@ import com.google.api.client.json.jackson.JacksonFactory;
 public class PoiView extends View implements LocationListener,
 		SensorEventListener {
 
+	/**
+	 * @uml.property  name="locationManager"
+	 * @uml.associationEnd  multiplicity="(1 1)"
+	 */
 	private LocationManager locationManager;
+	/**
+	 * @uml.property  name="currentLocation"
+	 * @uml.associationEnd  multiplicity="(1 1)"
+	 */
 	private Location currentLocation = null;
+	/**
+	 * @uml.property  name="mSensorManager"
+	 * @uml.associationEnd  multiplicity="(1 1)"
+	 */
 	private SensorManager mSensorManager;
+	/**
+	 * @uml.property  name="mMData" multiplicity="(0 -1)" dimension="1"
+	 */
 	private float[] mMData;
+	/**
+	 * @uml.property  name="mGData" multiplicity="(0 -1)" dimension="1"
+	 */
 	private float[] mGData;
+	/**
+	 * @uml.property  name="mRMatrix" multiplicity="(0 -1)" dimension="1"
+	 */
 	private float[] mRMatrix = new float[MATRIX_SIZE];
+	/**
+	 * @uml.property  name="mIMatrix" multiplicity="(0 -1)" dimension="1"
+	 */
 	private float[] mIMatrix = new float[MATRIX_SIZE];
+	/**
+	 * @uml.property  name="mOutRMatrix" multiplicity="(0 -1)" dimension="1"
+	 */
 	private float[] mOutRMatrix = new float[MATRIX_SIZE];
+	/**
+	 * @uml.property  name="values" multiplicity="(0 -1)" dimension="1"
+	 */
 	private float[] values = new float[3];
 	private static final long MIN_TIME = 0;
 	private static final float MIN_DISTANCE = 5;
 	private static final int TWO_MINUTES = 1000 * 60 * 2;
 	private static final int MATRIX_SIZE = 16;
+	/**
+	 * @uml.property  name="placesData"
+	 */
 	private List<PlaceData> placesData;
+	/**
+	 * @uml.property  name="cameraHorizontalAngle"
+	 */
 	private float cameraHorizontalAngle;
+	/**
+	 * @uml.property  name="cameraVerticalAngle"
+	 */
 	private float cameraVerticalAngle;
+	/**
+	 * @uml.property  name="widthPixels"
+	 */
 	private int widthPixels;
+	/**
+	 * @uml.property  name="heightPixels"
+	 */
 	private int heightPixels;
+	/**
+	 * @uml.property  name="mCount"
+	 */
 	private int mCount;
 
 
@@ -208,7 +256,7 @@ public class PoiView extends View implements LocationListener,
 		private final HttpTransport transport = new ApacheHttpTransport();
 		private static final String API_KEY = "AIzaSyDsuAJz24_oGbgqUzALidG2jD_-Wu-831E";
 		private static final String TAG = "PlacesSearchService";
-		private static final float RADIUS = 150;
+		private static final float RADIUS = 50;
 
 		@Override
 		protected Integer doInBackground(Location... location) {
@@ -400,19 +448,19 @@ public class PoiView extends View implements LocationListener,
 
 	@Override
 	protected void onDraw(Canvas canvas) {	
-		float y = 20;
+		float y = 30;
 		for (PlaceData place : placesData) {
 			if (place.isVisible()) {
 				Paint paint = new Paint();
 				paint.setTextAlign(Paint.Align.CENTER);
 				paint.setStyle(Paint.Style.FILL_AND_STROKE);
-				paint.setColor(Color.WHITE);
+				paint.setColor(Color.BLUE);
 				paint.setShadowLayer(3, 0, 0, Color.BLACK);
 				paint.setTypeface(Typeface.DEFAULT_BOLD);
-				paint.setTextSize(12);
+				paint.setTextSize(20);
 				canvas.drawText(place.getProvider(), place.getX(),
 						y, paint);
-				y = y + 20;
+				y = y + 30;
 				if (y >= heightPixels) y = 20;
 			}
 		}
